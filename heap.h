@@ -25,7 +25,7 @@ struct MinHeap {
             data[size] = idx;
             size++;//keeping track of heap elements inside
         }
-        upheap(idx,weightArr[]);
+        upheap(idx,weightArr);
     }
 
     int pop(int weightArr[]) {
@@ -38,7 +38,7 @@ struct MinHeap {
 
         data[0] = data[size - 1];//replacing the root with the last element
         size--;
-        //downheap()
+        downheap(0,weightArr);
         return rootIdx; //returning smallest element/root
     }
 
