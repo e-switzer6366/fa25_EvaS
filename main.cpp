@@ -86,8 +86,13 @@ int createLeafNodes(int freq[]) {
     cout << "Created " << nextFree << " leaf nodes.\n";
     return nextFree;
 }
-
-// Step 3: Build the encoding tree using heap operations
+//This function as per the instructions first makes a minHeap object and then using a for loop pushes all the leaf indices
+//to the heap. Next a while loop is used which conditions are heap.size > 1, this is important because if the size is zero or
+//less than nothing can be done. The two smallest nodes are popped into a variable, then the parent goes to the nect free node.
+//After that the left and right arrays are used as pointers, and they are set to those nodes we just popped. This is to help with
+//merging them together for a new node. After they are set then the parent is now set to the sum of those two weights.
+//Finally, that new node is pushed into the array and nextFree is incremented. It returns the index of the smallest node
+//which is the root.
 int buildEncodingTree(int nextFree) {
     // TODO:
     // 1. Create a MinHeap object.
@@ -99,23 +104,37 @@ int buildEncodingTree(int nextFree) {
     //    - Push new parent index back into the heap
     // 4. Return the index of the last remaining node (root)
     MinHeap heap = MinHeap();
-    heap.push(nextFree, weightArr);
+    for (int i = 0; i < nextFree; i++) {
+        heap.push(nextFree, weightArr);
+    }
+    //heap.push(nextFree,weightArr);
     while (heap.size > 1 ){
         int first = heap.pop(weightArr);//saving the first smallest node
         int second = heap.pop(weightArr);//second smallest node (root)
 
         int parent = nextFree;//parent goes to the next free node (leaf)
+
+        leftArr[parent] = first;
+        rightArr[parent] = second;
         weightArr[parent] = weightArr[first]+ weightArr[second];//combining the weight into parent
 
-        leftArr[parent] = first;//update the arrays to match the pops
-        rightArr[parent] = second;
-        heap.push(parent, weightArr);
+        heap.push(parent, weightArr);//put the new node into heap
 
+        nextFree++;
     }
     return heap.pop(weightArr);
 }
 
-// Step 4: Use an STL stack to generate codes
+//This function assings code to the characters in the messege using a stack. The idea behind this is the huffman encoding algorithm.
+//Per the instructions a stack pair is used which is the first thing also intitialized. After that the root is pushed onto the stack
+//as a starting point for the traversal. While the stack is not empty then the top of the stack is saved in a variable, then popped.
+//It's popped so that a traversal is possible to go through all the nodes. After that syntax is used to specifically access the int parameter
+//of the stack pair and assign that to a variable. Same thing is done for the string part, the int is named the index, and the string is the code.
+//Next leaf nodes are checked, and if they are encountered then that is the signal to finalize the code for that character. It is the end of the path
+//if a leaf node is encountered. Otherwise internal nodes are encountered and those are used as the path to get to the leaf nodes.
+//if right or left exists then they're pushed onto the stack with the string part of the pair as code + 1 or 0.
+//This all works so that the root is the first thing to start with but then it is popped, if right or left nodes are encountered they are pushed
+//onto the stack , making it possible to then again pop the nodes and check for leaf nodes and so forth.
 void generateCodes(int root, string codes[]) {
     // TODO:
     // Use stack<pair<int, string>> to simulate DFS traversal.
@@ -124,14 +143,27 @@ void generateCodes(int root, string codes[]) {
     stack<pair<int, string >> stack;
     stack.push({root,""});
     while (!stack.empty()) {
-        pair<int, string> top = stack.top();
-        stack.pop();
+        pair<int, string> top = stack.top(); //saves the top val to add it to the code arr
+        stack.pop();//pops to traverse
 
-    }
-    //if (rightArr[] != -1) {
-        //stack.push({rightArr, })
-    }
+        int idx = top.first;//assiging a variable to the int in the stack pair
+        string code = top.second;//assigning a variable to the string part
 
+        int l = leftArr[idx];
+        int r = rightArr[idx];
+
+        if (l == -1 && r == -1) {
+            codes[idx] = code;//this marks the completion of the code on that path/character
+        }
+        else {
+             if (r!=-1) {
+                 stack.push({r, code + "1"});//continue the path
+             }
+            if (l != -1) {
+                stack.push({l, code + "0" });
+            }
+        }
+    }
 }
 
 // Step 5: Print table and encoded message
